@@ -24,8 +24,9 @@
 
 ##   Load the National Health Interview Survey data:
 
-NH11 <- readRDS("dataSets/NatHealth2011.rds")
+NH11 <- readRDS("~/data science/logistic_regression/logistic_regression/dataSets/NatHealth2011.rds")
 labs <- attributes(NH11)$labels
+
 
 ##   [CDC website] http://www.cdc.gov/nchs/nhis.htm
 
@@ -89,7 +90,7 @@ cbind(predDat, predict(hyp.out, type = "response",
 
 ##   Instead of doing all this ourselves, we can use the effects package to
 ##   compute quantities of interest for us (cf. the Zelig package).
-
+install.packages("effects")
 library(effects)
 plot(allEffects(hyp.out))
 
@@ -100,9 +101,40 @@ plot(allEffects(hyp.out))
 
 ##   1. Use glm to conduct a logistic regression to predict ever worked
 ##      (everwrk) using age (age_p) and marital status (r_maritl).
+
+
 ##   2. Predict the probability of working for each level of marital
 ##      status.
-
 ##   Note that the data is not perfectly clean and ready to be modeled. You
 ##   will need to clean up at least some of the variables before fitting
 ##   the model.
+
+###Answers
+
+# check stucture of everwrk
+str(NH11$everwrk) 
+# check levels of everwrk
+levels(NH11$everwrk) 
+# collapse all missing values to NA
+NH11$everwrk <- factor(NH11$everwrk, levels=c("2 No", "1 Yes"))
+
+# Contruct LR model
+everwrk.out <- glm(everwrk~age_p+r_maritl,
+                   data=NH11, family="binomial")
+coef(summary(everwrk.out))
+
+# Clean LR coefficients
+everwrk.out.tab <- coef(summary(everwrk.out))
+everwrk.out.tab[, "Estimate"] <- exp(coef(everwrk.out))
+everwrk.out.tab
+
+# Create a dataset with predictors set at desired levels
+predEW <- with(NH11,
+               expand.grid(age_p = c(50), # for a 50 year old
+                           r_maritl = unique(NH11$r_maritl)))
+# Predict everwrk at those levels
+cbind(predEW, predict(everwrk.out, type = "response",
+                      se.fit = TRUE, interval="confidence",
+                      newdata = predEW))
+# Plot of LR model
+plot(allEffects(everwrk.out))
