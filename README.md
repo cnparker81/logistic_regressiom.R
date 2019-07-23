@@ -1,1 +1,2 @@
-# logistic_regressiom.R
+# logistic_regression.R
+This mini-project has been adapted from from Harvard University's statistical software workshop. Feel free to check out the link for more info and solutions.
